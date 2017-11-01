@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="resource.GuestBookMapper">
+
+	<!-- 페이징처리 -->
+	<select id="guestBooklistCriteria" parameterType="com.holo.vo.Criteria"
+		resultType="com.holo.vo.GuestBookVO">
+ 	<![CDATA[
+ 	SELECT  tt.*
+   FROM  ( SELECT  rownum as rnum,  aa.*
+             FROM (SELECT  *
+                     FROM  guest_books
+                 order by guestbook_idx desc ) aa 
+           WHERE rownum < #{oraPerPageNum}  ) tt   
+  where tt.rnum > #{pageStart} 
+	]]>
+	</select>
+
+	<select id="countPaging" resultType="int">
+		select count(guestbook_idx)
+		from guest_books
+	</select>
+
+	<!-- 마이페이지 방명록 조회 -->
+ 	<select id="selectGuestBookMember" parameterType="string" resultType="com.holo.vo.GuestBookVO">
+		select * from
+		guest_books 
+		where guestbook_writer = #{guestbook_writer}
+		order by guestbook_idx desc
+	</select>
+ 
+	<!-- 방명록 전체 조회 -->
+	<select id="selectGuestBook" resultType="com.holo.vo.GuestBookVO">
+		select g.guestbook_idx, g.guestbook_writer, g.guestbook_subject, g.guestbook_content, g.guestbook_regdate
+		, m.member_id, m.member_sex, m.member_level
+		from guest_books g join members m
+		on g.guestbook_writer = m.member_nickname
+		order by guestbook_idx desc
+	</select>
+
+	<!-- 마이페이지 회원 정보 조회 -->
+	<select id="myPageGuestBookInfo" parameterType="string" resultType="_int">
+		select count(guestbook_idx) from guest_books g
+		join members m
+		on g.guestbook_writer = m.member_nickname
+		where guestbook_writer = #{member_nickname}
+	</select>
+
+	<!-- 방명록 게시글 수 -->
+	<select id="guestbookCount" resultType="_int">
+		select
+		count(guestbook_idx) from guest_books
+	</select>
+
+	<!-- <select id="selectGuestBook" resultType="com.holo.vo.GuestBookVO"> 
+		select g.guestbook_idx, g.guestbook_subject, g.guestbook_content, g.guestbook_regdate, 
+		g.guestbook_count, g.guestbook_hit, g.guestbook_writer, m.member_level from 
+		guest_books g join members m on g.guestbook_writer = m.member_nickname order 
+		by g.guestbook_idx desc </select> -->
+
+	<!-- 방명록 글쓰기 -->
+	<insert id="insertGuestBook" parameterType="com.holo.vo.GuestBookVO">
+		<selectKey resultType="_int" keyProperty="guestbook_idx"
+			order="BEFORE">
+			SELECT guestbook_idx_seq.nextVal FROM dual
+		</selectKey>
+		insert into guest_books(guestbook_idx, guestbook_subject,
+		guestbook_content, guestbook_regdate, guestbook_count, guestbook_hit,
+		guestbook_writer)
+		values(#{guestbook_idx}, #{guestbook_subject},
+		#{guestbook_content}, sysdate, 0, 0,
+		#{guestbook_writer})
+	</insert>
+
+	<update id="updateGuestBook" parameterType="com.holo.vo.GuestBookVO">
+		update guest_books
+		set guestbook_subject=#{guestbook_subject}, guestbook_content=#{guestbook_content}, guestbook_regdate=sysdate
+		where
+		guestbook_idx=#{guestbook_idx}
+	</update>
+
+	<update id="updateGuestBookCount" parameterType="_int">
+		update
+		guest_books set guestbook_count = guestbook_count+1 where
+		guestbook_idx = #{guestbook_idx}
+	</update>
+
+	<!-- 방명록 삭제 -->
+	<delete id="deleteGuestBook" parameterType="_int">
+		delete from
+		guest_books where guestbook_idx=#{guestbook_idx}
+	</delete>
+
+	<select id="guestBookDateFormat" parameterType="_int"
+		resultType="string">
+		select to_char(guestbook_regdate, 'MONTH DD,
+		YYYY','NLS_DATE_LANGUAGE=ENGLISH') from guest_books where
+		guestbook_idx=#{guestbook_idx}
+	</select>
+
+</mapper>

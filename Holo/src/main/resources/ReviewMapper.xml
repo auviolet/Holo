@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="resource.ReviewMapper">
+  <select id="selectReview"  parameterType="_int" resultType="com.holo.vo.ReviewVO">
+    select r.review_idx, r.review_grade, r.review_date, r.review_comment, r.bistro_idx, r.member_id,
+    m.member_nickname from reviews r join members m 
+    on m.member_id=r.member_id 
+    where bistro_idx=#{bistro_idx}
+    order by 3 desc
+  </select>
+  <select id="selectReviewMember"  parameterType="string" resultType="com.holo.vo.ReviewVO">
+    select r.review_idx, r.review_grade, r.review_date, r.review_comment, r.bistro_idx, r.member_id,
+    m.member_nickname from reviews r join members m 
+    on m.member_id=r.member_id 
+    where member_nickname=#{member_nickname}
+    order by review_idx desc
+  </select>
+
+  <select id="selectReviewGPA" parameterType="_int" resultType="com.holo.vo.GPAVO">
+  	select round(avg(review_grade),2) reviewAvg, sum(review_grade) sum, count(*) count from reviews
+    where bistro_idx=#{bistro_idx}
+  </select>
+   <select id="selectReviewGPARank" resultType="com.holo.vo.GPAVO">
+	select round(avg(r.review_grade),2) reviewAvg, b.bistro_idx bistro_idx, b.bistro_name bistro_name, b.bistro_addr bistro_addr, 
+			b.bistro_tel bistro_tel, b.bistro_office_hour bistro_office_hour, b.bistro_keyword bistro_keyword
+	from bistros b 
+	join reviews r 
+	on b.bistro_idx=r.bistro_idx 
+	where r.bistro_idx in( select bistro_idx from ( select avg(r.review_grade), r.bistro_idx 
+		        						 					from reviews r group by r.bistro_idx order by 1 desc )) 
+	group by b.bistro_idx, b.bistro_name, b.bistro_addr, b.bistro_tel, b.bistro_office_hour, b.bistro_keyword
+	order by 1 desc
+  </select>
+  <insert id="insertReview"  parameterType="com.holo.vo.ReviewVO">
+  		<selectKey resultType="_int" keyProperty="review_idx" order="BEFORE">
+       		 SELECT review_idx_seq.nextval FROM dual     
+    	</selectKey>  
+  insert into reviews (review_idx, review_grade, review_date, review_comment, bistro_idx, member_id)
+  values (#{review_idx},#{review_grade},#{review_date},#{review_comment},#{bistro_idx},#{member_id})
+  </insert>
+  <update id="updateReview"  parameterType="_int">
+  update reviews set review_grade = #{review_grade}, review_comment = #{review_comment}, 
+  review_date = #{review_date} where review_idx = #{review_idx}
+  </update>
+  <delete id="deleteReview" parameterType="_int">
+  delete from reviews where review_idx = #{review_idx}
+ </delete> 
+ </mapper>

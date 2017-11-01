@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="resource.NoteMapper">
+
+<!-- 전체 쪽지함 조회 -->
+<select id="selectAllNote" resultType="com.holo.vo.NoteVO">
+	select * from notes order by note_idx desc
+</select>
+
+<!-- 받은 쪽지 조회 -->
+<select id="selectReceiverNote" parameterType="string" resultType="com.holo.vo.NoteVO">
+	select * from notes where note_receiver=#{note_receiver} order by note_idx desc
+</select>
+
+<!-- 쪽지 쓰기 -->
+<insert id="insertNote" parameterType="com.holo.vo.NoteVO">
+	<selectKey resultType="_int" keyProperty="note_idx"
+			order="BEFORE">
+			SELECT note_idx_seq.nextVal FROM dual
+		</selectKey>
+	insert into notes(note_idx, note_writer, note_receiver, note_content, note_regdate)
+	values(#{note_idx}, #{note_writer}, #{note_receiver}, #{note_content}, sysdate)
+</insert>
+
+</mapper>

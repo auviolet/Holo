@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="resource.BistroMapper">
+	<select id="selectBistro" parameterType="com.holo.vo.BistroVO"
+		resultType="com.holo.vo.BistroVO">
+		select * from bistros order by bistro_idx
+	</select>
+	
+	<select id="listCriteria"  parameterType = "com.holo.vo.BistroCriteria"  resultType="com.holo.vo.BistroVO">
+		 <![CDATA[  
+		  SELECT  tt.*
+		  FROM ( SELECT  rownum as rnum,  aa.*
+		  		 FROM ( SELECT  *
+		                FROM  bistros
+		                order by bistro_idx desc 
+		           	  ) aa 
+		 		 WHERE rownum < #{oraPerPageNum}  
+		    	) tt   
+		  WHERE tt.rnum > #{pageStart} 
+		  ]]>  
+		   <!-- #{perPageNum} -->
+	 </select>
+	 <!-- Data 총건수 가져오기   -->
+	 <select id="countPaging" resultType="int">
+		 select count(bistro_idx) from bistros
+	 </select>
+
+	<select id="selectBistroSearch" parameterType="string"
+		resultType="com.holo.vo.BistroVO">
+		select * from bistros
+		where bistro_name like '%' || #{key} || '%'
+		or bistro_addr like '%' || #{key} || '%'
+		or bistro_comment like '%' || #{key} || '%'
+		or bistro_keyword like '%' || #{key} || '%'
+	</select>
+
+	<select id="selectBistroOne" parameterType="com.holo.vo.BistroVO"
+		resultType="com.holo.vo.BistroVO">
+		select * from bistros where bistro_idx = #{bistro_idx}
+	</select>
+	
+	<select id="bistroCount" resultType="_int">
+		select count(bistro_idx) from bistros
+	</select>
+</mapper>
